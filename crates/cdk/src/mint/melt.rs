@@ -439,10 +439,7 @@ impl Mint {
                         lightning::offers::offer::Amount::Currency {
                             iso4217_code,
                             amount,
-                        } => (
-                            amount,
-                            CurrencyUnit::from_str(&String::from_utf8(iso4217_code.to_vec())?)?,
-                        ),
+                        } => (amount, CurrencyUnit::from_str(iso4217_code.as_str())?),
                     };
 
                     to_unit(amount, &currency, &CurrencyUnit::Msat)

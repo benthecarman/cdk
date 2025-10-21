@@ -67,9 +67,9 @@ ciborium = { version = "0.2.2", default-features = false, features = ["std"] }
 cbor-diag = "0.1.12"
 config = { version = "0.15.11", features = ["toml"] }
 futures = { version = "0.3.28", default-features = false, features = ["async-await"] }
-lightning = { git = "https://github.com/tnull/rust-lightning", branch = "2025-08-bump-electrum-client-0.1" }
-lightning-invoice = { git = "https://github.com/tnull/rust-lightning", branch = "2025-08-bump-electrum-client-0.1" }
-ldk-node = { git = "https://github.com/benthecarman/ldk-node.git", branch = "esplora-auth" }
+lightning = { version = "0.2.0-beta1" }
+lightning-invoice = { version = "0.34.0-beta1" }
+ldk-node = { git = "https://github.com/lightningdevkit/ldk-node.git", rev = "386eb748616a5dc2d747e6e991ed15792860635e" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = { version = "2" }
@@ -87,7 +87,7 @@ uuid = { version = "1.17", features = ["v4", "serde"] }
 utoipa = { version = "5.3.1", features = [
     "preserve_order",
     "preserve_path_order",
-]}
+] }
 serde_with = "3"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
@@ -98,7 +98,7 @@ reqwest = { version = "0.12", default-features = false, features = [
     "brotli",
     "gzip",
     "deflate",
-]}
+] }
 once_cell = "1.20.2"
 web-time = "1.1.0"
 rand = "0.9.1"

@@ -20,9 +20,10 @@ use ldk_node::bitcoin::hashes::Hash;
 use ldk_node::bitcoin::Network;
 use ldk_node::lightning::ln::channelmanager::PaymentId;
 use ldk_node::lightning::ln::msgs::SocketAddress;
+use ldk_node::lightning::routing::router::RouteParametersConfig;
 use ldk_node::lightning_invoice::{Bolt11InvoiceDescription, Description};
 use ldk_node::lightning_types::payment::PaymentHash;
-use ldk_node::payment::{PaymentDirection, PaymentKind, PaymentStatus, SendingParameters};
+use ldk_node::payment::{PaymentDirection, PaymentKind, PaymentStatus};
 use ldk_node::{Builder, Event, Node};
 use tokio::runtime::Runtime;
 use tokio_stream::wrappers::BroadcastStream;
@@ -156,6 +157,10 @@ impl CdkLdkNode {
 
         builder.set_node_alias("cdk-ldk-node".to_string())?;
 
+        if let Some(rt) = runtime.as_ref() {
+            builder.set_runtime(rt.handle().clone());
+        }
+
         let node = builder.build()?;
 
         tracing::info!("Creating tokio channel for payment notifications");
@@ -212,16 +217,8 @@ impl CdkLdkNode {
     /// # Errors
     /// Returns an error if the LDK node fails to start or event handling setup fails
     pub fn start_ldk_node(&self) -> Result<(), Error> {
-        match &self.runtime {
-            Some(runtime) => {
-                tracing::info!("Starting cdk-ldk node with existing runtime");
-                self.inner.start_with_runtime(Arc::clone(runtime))?
-            }
-            None => {
-                tracing::info!("Starting cdk-ldk-node with new runtime");
-                self.inner.start()?
-            }
-        };
+        tracing::info!("Starting cdk-ldk-node");
+        self.inner.start()?;
         let node_config = self.inner.config();
 
         tracing::info!("Starting node with network {}", node_config.network);
@@ -655,11 +652,11 @@ impl MintPayment for CdkLdkNode {
                 let send_params = match bolt11_options
                     .max_fee_amount
                     .map(|f| {
-                        to_unit(f, unit, &CurrencyUnit::Msat).map(|amount_msat| SendingParameters {
-                            max_total_routing_fee_msat: Some(Some(amount_msat.into())),
-                            max_channel_saturation_power_of_half: None,
-                            max_total_cltv_expiry_delta: None,
-                            max_path_count: None,
+                        to_unit(f, unit, &CurrencyUnit::Msat).map(|amount_msat| {
+                            RouteParametersConfig {
+                                max_total_routing_fee_msat: Some(amount_msat.into()),
+                                ..Default::default()
+                            }
                         })
                     })
                     .transpose()
@@ -677,7 +674,7 @@ impl MintPayment for CdkLdkNode {
                         .bolt11_payment()
                         .send_using_amount(&bolt11, amountless.amount_msat.into(), send_params)
                         .map_err(|err| {
-                            tracing::error!("Could not send send amountless bolt11: {}", err);
+                            tracing::error!("Could not send amountless bolt11: {}", err);
                             Error::CouldNotSendBolt11WithoutAmount
                         })?,
                     None => self

@@ -323,8 +323,7 @@ pub fn amount_for_offer(offer: &Offer, unit: &CurrencyUnit) -> Result<Amount, Er
             amount,
         } => (
             amount,
-            CurrencyUnit::from_str(&String::from_utf8(iso4217_code.to_vec())?)
-                .map_err(|_| Error::CannotConvertUnits)?,
+            CurrencyUnit::from_str(iso4217_code.as_str()).map_err(|_| Error::CannotConvertUnits)?,
         ),
     };
 
